@@ -1,41 +1,29 @@
-import express from 'express'
-import { ApolloServer } from '@apollo/server';
-import { expressMiddleware } from '@apollo/server/express4';
-import cors from 'cors';
-import { json } from 'body-parser';
+import express from "express";
+import { ApolloServer } from "@apollo/server";
+import { expressMiddleware } from "@apollo/server/express4";
+import cors from "cors";
+import { json } from "body-parser";
+import { prismaClient } from "./lib/db";
+import createApolloGraphqlServer from "./graphql";
 
-async function init(){
-    const app=express();
-    const PORT=Number(process.env.PORT) || 9000;
+async function init() {
+  const app = express();
+  const PORT = Number(process.env.PORT) || 9000;
 
-    app.use(express.json());
+  app.use(express.json());
 
-    const gqlServer=new ApolloServer({
-        typeDefs:`
-            type Query {
-                hello: String 
-                doosra:Int  
-                sayHello(name:String):String
-            }
-        `,
-        resolvers:{
-            Query: {
-                hello: ()=> `Hey there I am a graphQL server`,
-                doosra: ()=> 10,
-                sayHello:(_,{name}:{name:String})=>`Hey ${name} how are you`
-            }
-        }
-    })
+  app.get("/", (req, res) => {
+    res.json({ message: "Server is up and running" });
+  });
 
-    await gqlServer.start();
+  app.use(
+    "/graphql",
+    cors<cors.CorsRequest>(),
+    json(),
+    expressMiddleware(await createApolloGraphqlServer())
+  );
 
-    app.get("/",(req,res)=>{
-        res.json({message:"Server is up and running"})
-    })
-
-    app.use('/graphql', cors<cors.CorsRequest>(), json(), expressMiddleware(gqlServer));
-    app.listen(PORT,()=> console.log(`Server started at port:${PORT} `))
-
+  app.listen(PORT, () => console.log(`Server started at port:${PORT} `));
 }
 
 init();
