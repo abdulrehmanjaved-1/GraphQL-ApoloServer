@@ -10,18 +10,20 @@ async function init() {
   const app = express();
   const PORT = Number(process.env.PORT) || 9000;
 
+  //MiddleWares
   app.use(express.json());
-
-  app.get("/", (req, res) => {
-    res.json({ message: "Server is up and running" });
-  });
-
   app.use(
     "/graphql",
     cors<cors.CorsRequest>(),
     json(),
     expressMiddleware(await createApolloGraphqlServer())
   );
+
+  app.get("/", (req, res) => {
+    res.json({ message: "Server is up and running" });
+  });
+
+ 
 
   app.listen(PORT, () => console.log(`Server started at port:${PORT} `));
 }
